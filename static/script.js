@@ -13,6 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const coordsRow = document.getElementById('coords-row');
     const manualCheckbox = document.getElementById('manual-coords');
 
+    // Analysis Elements
+    const btnAnalyze = document.getElementById('btn-analyze');
+    const analysisSection = document.getElementById('analysis-section');
+    let lastFormData = null; // Store form data for analysis request
+
     if (manualCheckbox) {
         manualCheckbox.addEventListener('change', () => {
             if (manualCheckbox.checked) {
@@ -106,6 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
             renderCharts(data);
             resultsSection.scrollIntoView({ behavior: 'smooth' });
 
+            // Show Analysis Button and Store Data
+            if (btnAnalyze) {
+                btnAnalyze.classList.remove('hidden');
+                if (analysisSection) analysisSection.classList.add('hidden');
+                lastFormData = payload;
+            }
+
         } catch (err) {
             console.error('Error:', err);
             alert('Failed to generate chart');
@@ -190,7 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = container.querySelector(`.house-${houseNum}`);
             if (div) {
                 // Calculate Sign Number for this house
-                // Formula: (StartSign + House - 2) % 12 + 1
                 const currentSignNum = (startSignNum + parseInt(houseNum) - 2) % 12 + 1;
 
                 // Add Sign Number Element
@@ -210,4 +221,106 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+
+    // Analysis Button Click
+    if (btnAnalyze) {
+        btnAnalyze.addEventListener('click', async () => {
+            if (!lastFormData) return;
+
+            const originalText = btnAnalyze.textContent;
+            btnAnalyze.textContent = "Analyzing...";
+            btnAnalyze.disabled = true;
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(lastFormData)
+                });
+
+                if (!response.ok) throw new Error('Analysis failed');
+                const data = await response.json();
+
+                renderAnalysis(data);
+            } catch (e) {
+                alert(e.message);
+            } finally {
+                btnAnalyze.textContent = originalText;
+                btnAnalyze.disabled = false;
+            }
+        });
+    }
+
+    function renderAnalysis(data) {
+        if (!analysisSection) return;
+        analysisSection.classList.remove('hidden');
+        analysisSection.scrollIntoView({ behavior: 'smooth' });
+
+        // Render Yogas
+        const yogaList = document.getElementById('yoga-list');
+        const noYogas = document.getElementById('no-yogas');
+        if (yogaList) {
+            yogaList.innerHTML = '';
+            if (data.yogas && data.yogas.length > 0) {
+                if (noYogas) noYogas.classList.add('hidden');
+                data.yogas.forEach(yoga => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${yoga.name}</strong>: ${yoga.desc}`;
+                    yogaList.appendChild(li);
+                });
+            } else {
+                if (noYogas) noYogas.classList.remove('hidden');
+            }
+        }
+
+        // Render Manglik
+        const manglikBox = document.getElementById('manglik-status');
+        if (manglikBox && data.manglik) {
+            const isManglik = data.manglik.status;
+            manglikBox.innerHTML = `
+                <p style="color: ${isManglik ? '#d32f2f' : '#388e3c'}; font-weight: bold;">
+                    ${isManglik ? 'MANGLIK DETECTED' : 'NO MANGLIK DOSHA'}
+                </p>
+                <p>${data.manglik.desc}</p>
+            `;
+            manglikBox.style.borderLeft = isManglik ? "4px solid #d32f2f" : "4px solid #388e3c";
+            manglikBox.style.paddingLeft = "10px";
+            manglikBox.style.backgroundColor = isManglik ? "#ffebee" : "#e8f5e9";
+            manglikBox.style.padding = "10px";
+            manglikBox.style.borderRadius = "4px";
+        }
+
+        // Render Dasha Prediction
+        const dashaBox = document.getElementById('dasha-prediction');
+        if (dashaBox && data.dasha_prediction) {
+            const dp = data.dasha_prediction;
+            dashaBox.innerHTML = `
+                <p><strong>Running Mahadasha:</strong> ${dp.current_lord}</p>
+                <p><strong>Period:</strong> ${dp.period}</p>
+                <p><em>${dp.prediction}</em></p>
+            `;
+        }
+
+        // Render Nakshatra Analysis
+        const nakBox = document.getElementById('nakshatra-analysis');
+        if (nakBox && data.nakshatra_analysis) {
+            nakBox.innerHTML = `
+                <p><strong>Star:</strong> ${data.nakshatra_analysis.nakshatra}</p>
+                <p>${data.nakshatra_analysis.traits}</p>
+            `;
+        }
+
+        // Render House Analysis
+        const houseList = document.getElementById('house-analysis-list');
+        if (houseList && data.house_analysis) {
+            houseList.innerHTML = '';
+            data.house_analysis.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'analysis-item';
+                div.innerHTML = `<strong>${item.planet} in House ${item.house} (${item.sign})</strong>: ${item.text}`;
+                houseList.appendChild(div);
+            });
+        }
+    }
+
 });

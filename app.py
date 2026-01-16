@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify
 from astrology_utils import calculate_chart
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
+from astrology_utils import calculate_chart
+from analysis_utils import get_yogas, get_house_analysis, get_mahadasha_prediction, get_nakshatra_analysis, check_manglik
 import datetime
 
 app = Flask(__name__)
@@ -61,6 +63,40 @@ def get_chart():
     except Exception as e:
         print(f"Error in get_chart: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/analyze', methods=['POST'])
+def analyze_kundali():
+    data = request.json
+    try:
+        name = data.get('name')
+        dob = data.get('dob')
+        tob = data.get('tob')
+        lat = float(data.get('lat'))
+        lon = float(data.get('lon'))
+        tz = float(data.get('tz', 5.5))
+        
+        # Calculate Chart
+        chart_data = calculate_chart(name, dob, tob, lat, lon, tz)
+        
+        # Perform Analysis
+        yogas = get_yogas(chart_data)
+        house_analysis = get_house_analysis(chart_data)
+        dasha_pred = get_mahadasha_prediction(chart_data.get('vimshottari', []))
+        nak_analysis = get_nakshatra_analysis(chart_data)
+        manglik_dosha = check_manglik(chart_data)
+        
+        response = {
+            "yogas": yogas,
+            "house_analysis": house_analysis,
+            "dasha_prediction": dasha_pred,
+            "nakshatra_analysis": nak_analysis,
+            "manglik": manglik_dosha
+        }
+        return jsonify(response)
+        
+    except Exception as e:
+        print(f"Analysis Error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

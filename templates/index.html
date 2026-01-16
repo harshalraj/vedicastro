@@ -78,6 +78,9 @@
                     <div class="card-header">
                         <h2>Birth Chart Analysis</h2>
                         <div id="user-details" class="user-details"></div>
+                        <div class="analysis-btn-container" style="margin-top: 10px;">
+                            <button type="button" id="btn-analyze" class="btn-secondary hidden">Analyse Kundali</button>
+                        </div>
                     </div>
 
                     <div class="charts-container">
@@ -157,6 +160,46 @@
                                 <!-- Rows inserted via JS -->
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Analysis Report Section -->
+                    <div id="analysis-section" class="table-container hidden">
+                        <h3 style="border-bottom: 2px solid #333; padding-bottom: 5px; margin-bottom: 15px;">Kundali
+                            Analysis Report</h3>
+
+                        <div class="report-block">
+                            <h4>✨ Special Yogas Identified</h4>
+                            <ul id="yoga-list"></ul>
+                            <p id="no-yogas" class="hidden">No major special yogas detected in this simplified analysis.
+                            </p>
+                        </div>
+
+                        <div class="report-block">
+                            <h4>🔥 Manglik Dosha Status</h4>
+                            <div id="manglik-status" class="manglik-box"></div>
+                        </div>
+
+                        <div class="report-block">
+                            <h4>🪐 Current Mahadasha Prediction</h4>
+                            <div id="dasha-prediction" class="dasha-box">
+                                <!-- Content -->
+                            </div>
+                        </div>
+
+                        <div class="report-block">
+                            <h4>✨ Moon Nakshatra Personality</h4>
+                            <div id="nakshatra-analysis" style="font-style: italic; color: #555;"></div>
+                        </div>
+
+                        <div class="report-block">
+                            <h4>🏠 Planetary Interpretations (Sutras)</h4>
+                            <div id="house-analysis-list"></div>
+                        </div>
+
+                        <div class="report-block">
+                            <h4>🏠 Planetary Interpretations (Sutras)</h4>
+                            <div id="house-analysis-list"></div>
+                        </div>
                     </div>
                 </div>
             </section>
