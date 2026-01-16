@@ -1,5 +1,6 @@
 import datetime
 from interpretation_data import PLANET_IN_HOUSE, PLANET_IN_SIGN
+from karmic_data import RAHU_HOUSE_PURPOSE, KETU_HOUSE_KARMA, RAHU_NAKSHATRA_PURPOSE, KETU_NAKSHATRA_KARMA
 
 def get_yogas(chart_data):
     """
@@ -571,4 +572,51 @@ def get_nakshatra_analysis(chart_data):
     return {
         "nakshatra": moon_nak,
         "traits": traits.get(moon_nak, "A unique and complex personality.")
+    }
+
+def get_karmic_analysis(chart_data):
+    """
+    Returns Purpose (Rahu) and Past Karma (Ketu) Analysis.
+    """
+    # Need to find House and Nakshatra for Rahu and Ketu
+    d1 = chart_data.get('d1', {})
+    p_details = {p['Planet']: p for p in chart_data['planetary_details']}
+    
+    def get_house(planet):
+        for h, planets in d1.items():
+            if planet in planets:
+                return int(h)
+        return None
+        
+    def get_nakshatra_name(planet):
+        if planet in p_details:
+             # Format is "Name (Pada)" e.g. "Ashwini (1)"
+             return p_details[planet]['Nakshatra'].split(' (')[0]
+        return None
+
+    rahu_h = get_house('Rahu')
+    ketu_h = get_house('Ketu')
+    
+    rahu_nak = get_nakshatra_name('Rahu')
+    ketu_nak = get_nakshatra_name('Ketu')
+    
+    rahu_house_text = RAHU_HOUSE_PURPOSE.get(rahu_h, "Rahu's house purpose is mysterious.")
+    ketu_house_text = KETU_HOUSE_KARMA.get(ketu_h, "Ketu's past karma is hidden.")
+    
+    rahu_nak_text = RAHU_NAKSHATRA_PURPOSE.get(rahu_nak, "")
+    ketu_nak_text = KETU_NAKSHATRA_KARMA.get(ketu_nak, "")
+    
+    return {
+        "rahu": {
+            "house_text": rahu_house_text,
+            "nakshatra_text": rahu_nak_text,
+            "house": rahu_h,
+            "nakshatra": rahu_nak
+        },
+        "ketu": {
+            "house_text": ketu_house_text,
+            "nakshatra_text": ketu_nak_text,
+            "house": ketu_h,
+            "nakshatra": ketu_nak
+        }
     }

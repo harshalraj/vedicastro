@@ -86,35 +86,132 @@ def calculate_vimshottari(moon_lon, birth_date):
     # We will generate Mahadashas for 120 years from birth (or slightly more to cover life)
     dashas = []
     
+    # Helper to calculate Antardashas
+    def get_antardashas(md_lord, md_start_date, is_balance=False, birth_date_obj=None):
+        # Sequence starts from the MD Lord itself
+        start_idx = dasha_lords.index(md_lord)
+        ads = []
+        
+        md_years = dasha_years[md_lord]
+        
+        # If Balance Dasha: Start Date is NOT the MD Start. It is Birth Date.
+        # We need to find the theoretical MD Start.
+        # But we can also just calculate the full sequence and filter.
+        
+        theo_start_date = None
+        if is_balance and birth_date_obj:
+            # We need to backtrack to find theoretical start
+            # logic: md_start_date passed in IS the birth date for Balance Dasha
+            # We already computed remaining_percent in the main function but didn't pass it.
+            # Let's re-calculate or pass it.
+            # Simpler: Generate AD list with relative time (years from 0), then map to dates?
+            pass
+
+        # Let's use a simpler forward generation for normal Dashas
+        # And a special filtering for Balance.
+        
+        curr_ad_date = datetime.datetime.strptime(md_start_date, "%Y-%m-%d")
+        
+        # Proper Standard Calculation
+        # AD Lord Loop
+        
+        # If Balance: we need to find WHICH AD we are in or past.
+        # Let's generate the Full 9 ADs assuming md_start_date was the ACTUAL start of the MD.
+        # If is_balance, md_start_date is actually the Birth Date, which is mid-way. 
+        # So we can't use it as the seed for the sequence if we want to show the partial first AD correctly?
+        # Actually, for the user, they just want to see the sub-periods from Birth onwards.
+        # So we need to calculate the Full MD Schedule relative to a Theoretical Start.
+        
+        return ads
+
+    # Refined Logic for Dashas
+    dashas = []
     current_date = birth_date
     
-    # First Dasha (Balance)
-    # Add balance_years to current_date
+    # 1. Balance Dasha
+    # Calculate Theoretical Start of this MD
+    passed_percent = 1.0 - remaining_percent
+    passed_years = dasha_years[start_lord] * passed_percent
+    theo_start = birth_date - datetime.timedelta(days=passed_years * 365.25)
+    
+    # Calculate Full ADs for this Theoretical Context, filter for > BirthDate
+    def generate_filtered_ads(md_lord, md_duration_years, relative_start_date, cutoff_date):
+        filtered_list = []
+        ad_start_cursor = relative_start_date
+        
+        md_lord_idx = dasha_lords.index(md_lord)
+        
+        for i in range(9):
+            ad_lord = dasha_lords[(md_lord_idx + i) % 9]
+            ad_dur = (md_duration_years * dasha_years[ad_lord]) / 120.0
+            ad_days = ad_dur * 365.25
+            ad_end_cursor = ad_start_cursor + datetime.timedelta(days=ad_days)
+            
+            # Check overlap with [cutoff_date, infinity]
+            if ad_end_cursor > cutoff_date:
+                # This AD is visible
+                # Determine display start
+                disp_start = max(ad_start_cursor, cutoff_date)
+                
+                # Duration for display
+                # We can't easily recalc duration string if we chop it.
+                # But let's show the dates correctly.
+                
+                filtered_list.append({
+                    "Lord": ad_lord,
+                    "Start": disp_start.strftime("%Y-%m-%d"),
+                    "End": ad_end_cursor.strftime("%Y-%m-%d"),
+                    "Duration": "-" # Placeholder or calc diff
+                })
+                
+            ad_start_cursor = ad_end_cursor
+            
+        return filtered_list
+
+    # First Dasha Object
     days_balance = balance_years * 365.25
-    end_date = current_date + datetime.timedelta(days=days_balance)
+    balance_end_date = current_date + datetime.timedelta(days=days_balance)
+    
+    # Generate ADs for First Dasha
+    first_ads = generate_filtered_ads(start_lord, dasha_years[start_lord], theo_start, birth_date)
     
     dashas.append({
         "Lord": start_lord,
         "Start": current_date.strftime("%Y-%m-%d"),
-        "End": end_date.strftime("%Y-%m-%d"),
-        "Duration": f"{balance_years:.1f}y (Bal)"
+        "End": balance_end_date.strftime("%Y-%m-%d"),
+        "Duration": f"{balance_years:.1f}y (Bal)",
+        "Antardashas": first_ads
     })
     
-    current_date = end_date
-    
-    # Subsequent Dashas
+    current_date = balance_end_date
     curr_lord_idx = (lord_idx + 1) % 9
     
-    # Loop for roughly 120 years total cycle or just one full cycle
-    # Let's do a full cycle of 9 planets after the first partial one?
-    # Or just enough to cover up to 100 years from birth.
-    
-    age = 0
-    cycle_count = 0
-    # Stop if we exceed 120 years from birth
+    # Loop
     birth_year = birth_date.year
+    cycle_count = 0
     
-    while cycle_count < 9:
+    # Standard AD Generator for full dashas
+    def generate_full_ads(md_lord, start_date):
+        md_lord_idx = dasha_lords.index(md_lord)
+        md_dur = dasha_years[md_lord]
+        res = []
+        curr = start_date
+        for i in range(9):
+             ad_lord = dasha_lords[(md_lord_idx + i) % 9]
+             ad_years = (md_dur * dasha_years[ad_lord]) / 120.0
+             ad_days = ad_years * 365.25
+             end = curr + datetime.timedelta(days=ad_days)
+             res.append({
+                 "Lord": ad_lord,
+                 "Start": curr.strftime("%Y-%m-%d"),
+                 "End": end.strftime("%Y-%m-%d"),
+                 "Duration": f"{ad_years:.2f}y"
+             })
+             curr = end
+        return res
+
+    # We iterate 8 times to complete the cycle of 9 planets (1 Balance + 8 Full)
+    while cycle_count < 8:
         lord = dasha_lords[curr_lord_idx]
         years = dasha_years[lord]
         
@@ -125,7 +222,8 @@ def calculate_vimshottari(moon_lon, birth_date):
             "Lord": lord,
             "Start": current_date.strftime("%Y-%m-%d"),
             "End": end_date.strftime("%Y-%m-%d"),
-            "Duration": f"{years}y"
+            "Duration": f"{years}y",
+            "Antardashas": generate_full_ads(lord, current_date)
         })
         
         current_date = end_date
@@ -134,7 +232,7 @@ def calculate_vimshottari(moon_lon, birth_date):
         
         if end_date.year - birth_year > 120:
             break
-            
+
     return dashas
 
 def calculate_chart(name, date_str, time_str, lat, lon, tz_offset):

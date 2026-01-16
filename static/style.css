@@ -396,3 +396,214 @@ input:focus {
     color: #999;
     font-weight: normal;
 }
+
+/* --------------------------------------------------------------------------
+   MODERN CHAT UI
+   -------------------------------------------------------------------------- */
+
+/* Animated Chat Toggle Button (FAB style) */
+#chat-toggle-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #000 0%, #333 100%);
+    color: white;
+    font-size: 1.5rem;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInScale 0.5s ease-out;
+}
+
+#chat-toggle-btn:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+#chat-toggle-btn.hidden {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Chat Widget Container */
+#chat-widget {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 350px;
+    height: 500px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1001;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    animation: slideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+#chat-widget.hidden {
+    display: none;
+}
+
+/* Chat Header */
+.chat-header {
+    background: linear-gradient(135deg, #000 0%, #222 100%);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#chat-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+#chat-close-btn:hover {
+    opacity: 1;
+}
+
+/* Chat Messages Area */
+#chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    scroll-behavior: smooth;
+}
+
+/* Message Bubbles */
+.message {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    position: relative;
+    word-wrap: break-word;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.message.user {
+    align-self: flex-end;
+    background: #000;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.message.bot {
+    align-self: flex-start;
+    background: white;
+    color: #333;
+    border: 1px solid #eee;
+    border-bottom-left-radius: 4px;
+}
+
+/* Strong Text inside messages */
+.message strong {
+    font-weight: 700;
+}
+
+/* Chat Input Area */
+.chat-input-area {
+    padding: 15px;
+    background: white;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#chat-input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+#chat-input:focus {
+    border-color: #000;
+    outline: none;
+}
+
+#chat-send-btn {
+    background: #000;
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    font-size: 0.9rem;
+}
+
+#chat-send-btn:hover {
+    transform: scale(1.05);
+    background: #333;
+}
+
+/* Animations */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Special styling for Analysis Results in Chat */
+.message.bot ul {
+    margin-left: 20px;
+    margin-top: 5px;
+}
+
+.message.bot li {
+    margin-bottom: 5px;
+}

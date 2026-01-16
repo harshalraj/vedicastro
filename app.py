@@ -3,7 +3,8 @@ from astrology_utils import calculate_chart
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 from astrology_utils import calculate_chart
-from analysis_utils import get_yogas, get_house_analysis, get_mahadasha_prediction, get_nakshatra_analysis, check_manglik
+from analysis_utils import get_yogas, get_house_analysis, get_mahadasha_prediction, get_nakshatra_analysis, check_manglik, get_karmic_analysis
+from chat_logic import process_question
 import datetime
 
 app = Flask(__name__)
@@ -84,18 +85,42 @@ def analyze_kundali():
         dasha_pred = get_mahadasha_prediction(chart_data.get('vimshottari', []))
         nak_analysis = get_nakshatra_analysis(chart_data)
         manglik_dosha = check_manglik(chart_data)
+        karmic_analysis = get_karmic_analysis(chart_data)
         
         response = {
             "yogas": yogas,
             "house_analysis": house_analysis,
             "dasha_prediction": dasha_pred,
             "nakshatra_analysis": nak_analysis,
-            "manglik": manglik_dosha
+            "manglik": manglik_dosha,
+            "karmic_analysis": karmic_analysis
         }
         return jsonify(response)
+    except Exception as e:
+        print(f"Error in analyze_kundali: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    try:
+        data = request.json
+        question = data.get('question', '')
+        payload = data.get('chart_params') # Full payload to recalc chart on fly or pass chart_data
+        
+        if not question or not payload:
+            return jsonify({"error": "Missing inputs"}), 400
+            
+        # Recalculate chart (stateless)
+        chart_data = calculate_chart(
+            payload['name'], payload['dob'], payload['tob'], 
+            float(payload['lat']), float(payload['lon']), float(payload['tz'])
+        )
+        
+        result = process_question(question, chart_data)
+        return jsonify(result)
         
     except Exception as e:
-        print(f"Analysis Error: {e}")
+        print(f"Chat Analysis Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':

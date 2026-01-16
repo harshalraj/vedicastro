@@ -144,6 +144,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Render Dasha
         renderDashaTable(data.vimshottari);
+
+        // Show Chat Button
+        const chatToggleBtn = document.getElementById('chat-toggle-btn');
+        if (chatToggleBtn) {
+            chatToggleBtn.classList.remove('hidden');
+            // Give a little bounce or pulse effect via CSS if desired, or just show it
+        }
     }
 
     function renderTable(details) {
@@ -171,15 +178,77 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        dashas.forEach(dasha => {
+        dashas.forEach((dasha, index) => {
+            // Main Row
             const tr = document.createElement('tr');
+            tr.className = 'dasha-row';
+            tr.style.cursor = 'pointer';
+
+            // Add Expand icon if clickable
+            const hasAds = dasha.Antardashas && dasha.Antardashas.length > 0;
+            const icon = hasAds ? '▶' : ''; // Simple arrow
+
+
+
             tr.innerHTML = `
-                <td>${dasha.Lord}</td>
+                <td style="display: flex; align-items: center; justify-content: flex-start;">
+                    <div style="width: 25px; text-align: center; margin-right: 5px;">${icon}</div>
+                    <span>${dasha.Lord}</span>
+                </td>
                 <td>${dasha.Start}</td>
                 <td>${dasha.End}</td>
                 <td>${dasha.Duration}</td>
             `;
             tbody.appendChild(tr);
+
+            // Antardasha Row (Hidden by default)
+            if (hasAds) {
+                const adRow = document.createElement('tr');
+                adRow.className = 'ad-row hidden';
+                adRow.innerHTML = `
+                    <td colspan="4" style="background-color: #f9f9f9; padding: 0;">
+                        <div style="padding: 10px 20px;">
+                            <h5 style="margin: 0 0 10px 0; color: #555;">${dasha.Lord} Antardashas</h5>
+                            <table style="width: 100%; font-size: 0.9em; border-collapse: collapse;">
+                                <thead style="background: #eee;">
+                                    <tr>
+                                        <th style="padding:5px; text-align:left;">AD Lord</th>
+                                        <th style="padding:5px; text-align:left;">Start</th>
+                                        <th style="padding:5px; text-align:left;">End</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${dasha.Antardashas.map(ad => `
+                                        <tr style="border-bottom: 1px solid #ddd;">
+                                            <td style="padding:5px;">${ad.Lord}</td>
+                                            <td style="padding:5px;">${ad.Start}</td>
+                                            <td style="padding:5px;">${ad.End}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(adRow);
+
+                // Click Event
+                tr.addEventListener('click', () => {
+                    const isHidden = adRow.classList.contains('hidden');
+                    // Find the div that contains the icon
+                    const iconDiv = tr.querySelector('td > div');
+
+                    if (isHidden) {
+                        adRow.classList.remove('hidden');
+                        if (iconDiv) iconDiv.textContent = '▼';
+                        tr.style.backgroundColor = '#f0f0f0';
+                    } else {
+                        adRow.classList.add('hidden');
+                        if (iconDiv) iconDiv.textContent = '▶';
+                        tr.style.backgroundColor = '';
+                    }
+                });
+            }
         });
     }
 
@@ -290,6 +359,25 @@ document.addEventListener('DOMContentLoaded', () => {
             manglikBox.style.borderRadius = "4px";
         }
 
+        // Render Karmic Analysis (Rahu/Ketu)
+        const rahuBox = document.getElementById('rahu-purpose');
+        const ketuBox = document.getElementById('ketu-karma');
+
+        if (rahuBox && ketuBox && data.karmic_analysis) {
+            const r = data.karmic_analysis.rahu;
+            const k = data.karmic_analysis.ketu;
+
+            rahuBox.innerHTML = `
+                <p><strong>House ${r.house}:</strong> ${r.house_text}</p>
+                <p><strong>Star (${r.nakshatra}):</strong> ${r.nakshatra_text}</p>
+            `;
+
+            ketuBox.innerHTML = `
+                <p><strong>House ${k.house}:</strong> ${k.house_text}</p>
+                <p><strong>Star (${k.nakshatra}):</strong> ${k.nakshatra_text}</p>
+            `;
+        }
+
         // Render Dasha Prediction
         const dashaBox = document.getElementById('dasha-prediction');
         if (dashaBox && data.dasha_prediction) {
@@ -320,6 +408,107 @@ document.addEventListener('DOMContentLoaded', () => {
                 div.innerHTML = `<strong>${item.planet} in House ${item.house} (${item.sign})</strong>: ${item.text}`;
                 houseList.appendChild(div);
             });
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Chat Widget Logic
+    // ---------------------------------------------------------
+    const chatToggleBtn = document.getElementById('chat-toggle-btn');
+    const chatWidget = document.getElementById('chat-widget');
+    const chatCloseBtn = document.getElementById('chat-close-btn');
+    const chatInput = document.getElementById('chat-input');
+    const chatSendBtn = document.getElementById('chat-send-btn');
+    const chatMessages = document.getElementById('chat-messages');
+
+    // Toggle Chat Window
+    if (chatToggleBtn && chatWidget) {
+        chatToggleBtn.addEventListener('click', () => {
+            chatWidget.classList.remove('hidden');
+            chatToggleBtn.classList.add('hidden');
+            // Focus input
+            setTimeout(() => {
+                if (chatInput) chatInput.focus();
+            }, 100);
+        });
+    }
+
+    if (chatCloseBtn && chatWidget) {
+        chatCloseBtn.addEventListener('click', () => {
+            chatWidget.classList.add('hidden');
+            if (chatToggleBtn) chatToggleBtn.classList.remove('hidden');
+        });
+    }
+
+    // Send Message Logic
+    if (chatSendBtn) {
+        chatSendBtn.addEventListener('click', sendMessage);
+    }
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    }
+
+    async function sendMessage() {
+        const question = chatInput.value.trim();
+        if (!question) return;
+
+        // Display User Message
+        appendMessage('user', question);
+        chatInput.value = '';
+
+        // Display Loading
+        const loadingId = appendMessage('bot', 'Analyzing stars...');
+
+        try {
+            if (!lastFormData) {
+                updateMessage(loadingId, "Please generate your birth chart first!");
+                return;
+            }
+
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question: question,
+                    chart_params: lastFormData
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                updateMessage(loadingId, "Error: " + data.error);
+            } else {
+                // Formatting
+                let formattedAnswer = data.answer || "I am speechless.";
+                formattedAnswer = formattedAnswer.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                formattedAnswer = formattedAnswer.replace(/\n\n/g, '<br><br>');
+                formattedAnswer = formattedAnswer.replace(/\n/g, '<br>');
+
+                updateMessage(loadingId, formattedAnswer);
+            }
+        } catch (err) {
+            console.error(err);
+            updateMessage(loadingId, "Sorry, the stars are silent right now. (Connection Error)");
+        }
+    }
+
+    function appendMessage(sender, text) {
+        if (!chatMessages) return null;
+        const div = document.createElement('div');
+        div.className = `message ${sender}`;
+        div.innerHTML = text;
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return div;
+    }
+
+    function updateMessage(msgDiv, newText) {
+        if (msgDiv) {
+            msgDiv.innerHTML = newText;
+            if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
         }
     }
 

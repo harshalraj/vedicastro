@@ -180,6 +180,20 @@
                         </div>
 
                         <div class="report-block">
+                            <h4>🎯 Purpose of Life (Rahu's Obsession)</h4>
+                            <div id="rahu-purpose" class="karmic-box"
+                                style="background: #e3f2fd; padding: 10px; border-left: 4px solid #1976d2; border-radius: 4px;">
+                            </div>
+                        </div>
+
+                        <div class="report-block">
+                            <h4>🧘 Past Life Mastery (Ketu's Detachment)</h4>
+                            <div id="ketu-karma" class="karmic-box"
+                                style="background: #fff3e0; padding: 10px; border-left: 4px solid #f57c00; border-radius: 4px;">
+                            </div>
+                        </div>
+
+                        <div class="report-block">
                             <h4>🪐 Current Mahadasha Prediction</h4>
                             <div id="dasha-prediction" class="dasha-box">
                                 <!-- Content -->
@@ -195,14 +209,29 @@
                             <h4>🏠 Planetary Interpretations (Sutras)</h4>
                             <div id="house-analysis-list"></div>
                         </div>
-
-                        <div class="report-block">
-                            <h4>🏠 Planetary Interpretations (Sutras)</h4>
-                            <div id="house-analysis-list"></div>
-                        </div>
                     </div>
                 </div>
             </section>
+        </div>
+    </div>
+
+    <!-- Chat Widget -->
+    <button id="chat-toggle-btn" class="hidden">💬</button>
+
+    <div id="chat-widget" class="hidden">
+        <div class="chat-header">
+            <span>Vedic AI Assistant</span>
+            <button id="chat-close-btn">&times;</button>
+        </div>
+        <div id="chat-messages">
+            <div class="message bot">
+                Namaste! I can answer questions about your Marriage, Career, Wealth, Health, or Education based on your
+                chart. What would you like to know?
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Ask a question..." />
+            <button id="chat-send-btn">Send</button>
         </div>
     </div>
 

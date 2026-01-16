@@ -1,6 +1,6 @@
 from astrology_utils import calculate_chart
 from astrology_utils import calculate_chart
-from analysis_utils import get_yogas, get_house_analysis, get_mahadasha_prediction, get_nakshatra_analysis, check_manglik
+from analysis_utils import get_yogas, get_house_analysis, get_mahadasha_prediction, get_nakshatra_analysis, check_manglik, get_karmic_analysis
 import json
 
 if __name__ == "__main__":
@@ -22,6 +22,11 @@ if __name__ == "__main__":
     for y in yogas:
         print(f"- {y['name']}: {y['desc']}")
         
+    vim = data.get('vimshottari', [])
+    if vim:
+        print(f"\nMimshottari Dasha (Total {len(vim)} Rows):")
+        for d in vim:
+            print(f"MD: {d['Lord']} | {d['Start']} to {d['End']} | {d['Duration']}")
     print("\nDasha Prediction:")
     dp = get_mahadasha_prediction(data['vimshottari'])
     print(f"Running: {dp['current_lord']} ({dp['period']})")
@@ -35,6 +40,15 @@ if __name__ == "__main__":
     md = check_manglik(data)
     print(f"Status: {md['status']}")
     print(md['desc'])
+    
+    print("\nKarmic Analysis:")
+    ka = get_karmic_analysis(data)
+    print("RAHU (Purpose):")
+    print(ka['rahu']['house_text'])
+    print(ka['rahu']['nakshatra_text'])
+    print("KETU (Past):")
+    print(ka['ketu']['house_text'])
+    print(ka['ketu']['nakshatra_text'])
     
     print("\nHouse Analysis (Sample):")
     ha = get_house_analysis(data)
