@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vedic Astrology Utility</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="main-container">
+        <header>
+            <h1>Vedic Astrology Charts</h1>
+            <p>Generate your D1 Lagna and Moon Rashi Chart Instantly</p>
+        </header>
+
+        <div class="content-wrapper">
+            <!-- Input Form Section -->
+            <section class="form-section">
+                <div class="card">
+                    <h2>Enter Birth Details</h2>
+                    <form id="astroForm">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" placeholder="Enter Full Name" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="dob">Date of Birth</label>
+                                <input type="date" id="dob" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tob">Time of Birth</label>
+                                <input type="time" id="tob" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group relative">
+                            <label for="place">Place of Birth</label>
+                            <input type="text" id="place" placeholder="Search City..." autocomplete="off">
+                            <div id="suggestions" class="suggestions-list"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="manual-coords"> Enter Coordinates Manually
+                            </label>
+                        </div>
+
+                        <div class="form-row hidden" id="coords-row">
+                            <div class="form-group">
+                                <label for="lat">Latitude</label>
+                                <input type="number" id="lat" step="any" placeholder="e.g. 28.61">
+                            </div>
+                            <div class="form-group">
+                                <label for="lon">Longitude</label>
+                                <input type="number" id="lon" step="any" placeholder="e.g. 77.20">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tz">Timezone (GMT Offset)</label>
+                            <input type="number" id="tz" step="0.5" value="5.5" placeholder="e.g. 5.5 for IST">
+                        </div>
+
+                        <button type="submit" class="btn-generate">Generate Charts</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results" class="results-section hidden">
+                <div class="card result-card">
+                    <div class="card-header">
+                        <h2>Birth Chart Analysis</h2>
+                        <div id="user-details" class="user-details"></div>
+                    </div>
+
+                    <div class="charts-container">
+                        <div class="chart-box">
+                            <h3>D1 Chart (Lagna)</h3>
+                            <div class="chart-display" id="d1-chart">
+                                <!-- North Indian Chart Grid drawn with CSS -->
+                                <div class="north-indian-chart">
+                                    <div class="house house-1" data-house="1"></div>
+                                    <div class="house house-2" data-house="2"></div>
+                                    <div class="house house-3" data-house="3"></div>
+                                    <div class="house house-4" data-house="4"></div>
+                                    <div class="house house-5" data-house="5"></div>
+                                    <div class="house house-6" data-house="6"></div>
+                                    <div class="house house-7" data-house="7"></div>
+                                    <div class="house house-8" data-house="8"></div>
+                                    <div class="house house-9" data-house="9"></div>
+                                    <div class="house house-10" data-house="10"></div>
+                                    <div class="house house-11" data-house="11"></div>
+                                    <div class="house house-12" data-house="12"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-box">
+                            <h3>Moon Chart (Rashi)</h3>
+                            <div class="chart-display" id="moon-chart">
+                                <div class="north-indian-chart">
+                                    <div class="house house-1" data-house="1"></div>
+                                    <div class="house house-2" data-house="2"></div>
+                                    <div class="house house-3" data-house="3"></div>
+                                    <div class="house house-4" data-house="4"></div>
+                                    <div class="house house-5" data-house="5"></div>
+                                    <div class="house house-6" data-house="6"></div>
+                                    <div class="house house-7" data-house="7"></div>
+                                    <div class="house house-8" data-house="8"></div>
+                                    <div class="house house-9" data-house="9"></div>
+                                    <div class="house house-10" data-house="10"></div>
+                                    <div class="house house-11" data-house="11"></div>
+                                    <div class="house house-12" data-house="12"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Planetary Details Table -->
+                    <div class="table-container">
+                        <h3>Planetary Details</h3>
+                        <table id="planet-table">
+                            <thead>
+                                <tr>
+                                    <th>Planet</th>
+                                    <th>Sign</th>
+                                    <th>Degree</th>
+                                    <th>Nakshatra</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows inserted via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Vimshottari Dasha Table -->
+                    <div class="table-container">
+                        <h3>Vimshottari Dasha</h3>
+                        <table id="dasha-table">
+                            <thead>
+                                <tr>
+                                    <th>Mahadasha</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows inserted via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
